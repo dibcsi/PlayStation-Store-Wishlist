@@ -8,5 +8,6 @@ Windows desktop application to check your wished games' prices
  - If a game is on sale, a yellow star symbol appears as a notification
  - Clicking any game will open the corresponding PS Store website in your browser
  - If a game is no more needed on the wishlist, simply remove it by clicking the _X_ button next to it
+ - If there is PS plus discount, a blue star symbol appears as a notification
 
 

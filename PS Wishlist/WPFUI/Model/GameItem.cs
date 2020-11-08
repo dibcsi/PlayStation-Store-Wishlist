@@ -13,6 +13,8 @@ namespace WPFUI
         public string FinalPrice { get; set; }
         public string OriginalPrice { get; set; }
 
+        public string PSPlusPrice { get; set; }
+
         public string URL{ get; set; }
 
     }

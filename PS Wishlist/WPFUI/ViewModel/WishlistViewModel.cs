@@ -229,6 +229,7 @@ namespace WPFUI
                 CoverImagePath = string.Empty,
                 FinalPrice = string.Empty,
                 OriginalPrice = string.Empty,
+                PSPlusPrice = string.Empty,
                 URL = url
             };
             HtmlWeb web = new HtmlWeb();
@@ -281,6 +282,8 @@ namespace WPFUI
         {
             game.OriginalPrice = string.Empty;
             game.FinalPrice = string.Empty;
+            game.PSPlusPrice = string.Empty;
+
 
             HtmlNodeCollection priceNodes = htmlDocument.DocumentNode.SelectNodes("//span[@data-qa]");
             foreach (var node in priceNodes)
@@ -300,6 +303,22 @@ namespace WPFUI
                     break;
                 }
             }
+
+
+            try
+            {
+                int dpIdxPSs = htmlDocument.Text.IndexOf("[\"ps-plus\"]");
+                if (dpIdxPSs > 0)
+                {
+                    int dpIdxS = htmlDocument.Text.IndexOf("discountedPrice", dpIdxPSs) + 18;
+                    int dpIdxE = htmlDocument.Text.IndexOf("\"", dpIdxS);
+                    game.PSPlusPrice = htmlDocument.Text.Substring(dpIdxS, dpIdxE - dpIdxS);
+                }
+            }
+            catch {
+                game.PSPlusPrice = "ERR..";
+            };
+
         }
 
         private string GenerateImageName(string str)

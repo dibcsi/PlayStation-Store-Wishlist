@@ -68,17 +68,27 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" MaxHeight="40" Source="{Binding Path=ImageSource}" Margin="{StaticResource listItemMargin}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4" Text="{Binding Path=Title}" Margin="{StaticResource listItemMargin}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="6" Text="{Binding Path=Title}" Margin="{StaticResource listItemMargin}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="Price:" Margin="{StaticResource listItemMargin}"/>
                         <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Path=FinalPrice}" Margin="{StaticResource listItemMargin}"/>
                         <TextBlock Grid.Row="1" Grid.Column="3" Text="Original price:" Margin="{StaticResource listItemMargin}" Visibility="{Binding Path=OriginalPrice, Converter={StaticResource PriceToVisibilityConverter}}" />
                         <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Path=OriginalPrice}" Margin="{StaticResource listItemMargin}" />
-                        <TextBlock Grid.Row="0" Grid.Column="5" Grid.RowSpan="2" Text="✯" Visibility="{Binding Path=OriginalPrice, Converter={StaticResource PriceToVisibilityConverter}}" FontSize="30" Foreground="#FFE4C60B"/>
-                        <Button Grid.Row="0" Grid.Column="6" Grid.RowSpan="2" Content="   ❌   " HorizontalContentAlignment="Right" Click="Button_Click" BorderBrush="#00707070" Background="#00DDDDDD"/>
+                        <TextBlock Grid.Row="1" Grid.Column="5" Text="PSPlus Price:" Margin="{StaticResource listItemMargin}" Visibility="{Binding Path=PSPlusPrice, Converter={StaticResource PriceToVisibilityConverter}}" />
+                        <TextBlock Grid.Row="1" Grid.Column="6" Text="{Binding Path=PSPlusPrice}" Margin="{StaticResource listItemMargin}" />
+                        <TextBlock Grid.Row="0" Grid.Column="7" Grid.RowSpan="2" Text="✯" Visibility="{Binding Path=OriginalPrice, Converter={StaticResource PriceToVisibilityConverter}}" FontSize="30" Foreground="#FFE4C60B"/>
+                        <TextBlock Grid.Row="0" Grid.Column="8" Grid.RowSpan="2" Text="✯" Visibility="{Binding Path=PSPlusPrice, Converter={StaticResource PriceToVisibilityConverter}}" FontSize="30" Foreground="#0abab5"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="9" Grid.RowSpan="2" Text=""  />
+                        
+                        <Button Grid.Row="0" Grid.Column="10" Grid.RowSpan="2" Content="   ❌   " HorizontalContentAlignment="Right" Click="Button_Click" BorderBrush="#00707070" Background="#00DDDDDD"/>
                     </Grid>
 
                 </DataTemplate>
