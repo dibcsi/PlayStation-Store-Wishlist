@@ -16,6 +16,8 @@ namespace WPFUI
         public MainWindow()
         {
             InitializeComponent();
+
+
             _viewModel = new WishlistViewModel();
             DataContext = _viewModel;
             var task = Task.Run(() =>
@@ -33,8 +35,7 @@ namespace WPFUI
 
         }
 
-       
-
+      
 
         private void InputField_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -65,8 +66,8 @@ namespace WPFUI
 
         private void ListboxGames_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var item = e.AddedItems[0];
-            _viewModel?.OpenGameUrl(item);
+          //  var item = e.AddedItems[0];
+          //  _viewModel?.OpenGameUrl(item);
         }
 
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
@@ -92,6 +93,23 @@ namespace WPFUI
             var game = item.DataContext;
             _viewModel?.RemoveGameFromList(game);
             ListboxGames.Items.Refresh();
+        }
+
+        private void ListboxGames_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var item = ((ListBox)sender).SelectedItem;
+            _viewModel?.OpenGameUrl(item);
+        }
+
+        private void ListboxGames_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var item = ((ListBox)sender).SelectedItem;
+            GameItem gi = (GameItem)item;
+            var pricehistory = new PriceHistory(gi.Title);
+            pricehistory.Owner = this;
+            pricehistory.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            pricehistory.ShowDialog();
+
         }
     }
 }

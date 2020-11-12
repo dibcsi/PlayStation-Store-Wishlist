@@ -6,8 +6,7 @@ namespace WPFUI
     public class GameItem
     {
         public string Title { get; set; }
-        public string CoverImagePath { get; set; }
-
+       
         [JsonIgnore]
         public ImageSource ImageSource { get; set; }
         public string FinalPrice { get; set; }

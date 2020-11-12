@@ -11,6 +11,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -36,6 +37,20 @@ namespace WPFUI
                 OnPropertyChanged();
             }
         }
+
+
+        private bool _isGameOnSale = false;
+
+        public bool IsGameOnSale
+        {
+            get { return _isGameOnSale; }
+            set
+            {
+                _isGameOnSale = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         private List<GameItem> _games;
         public List<GameItem> Games
@@ -63,7 +78,8 @@ namespace WPFUI
 
         public WishlistViewModel()
         {
-            CreateImageDirectory();
+            CreateDataDirectory();
+
             Games = new List<GameItem>();
             try
             {
@@ -73,7 +89,7 @@ namespace WPFUI
                     Games = SaveLoadUtils.LoadFromJson(_jsonFilePath);
                     foreach (var game in Games)
                     {
-                        game.ImageSource = LoadImage(game.CoverImagePath);
+                        game.ImageSource = LoadImage(GetImagePath(game.Title));
                     }
                     IsBusy = false;
                 }
@@ -126,19 +142,46 @@ namespace WPFUI
                         HtmlWeb web = new HtmlWeb();
                         HtmlDocument doc = web.Load(game.URL);
                         ScrapePrices(game, doc);
+
+                        if (game.FinalPrice != "")
+                            ImageSave(game, doc);
+
+                        SavePriceHistory(game);
+
                     }
                     catch (Exception e)
                     {
-
                         ShowMessage(e.ToString(), MessageType.Error);
                     }
 
                 }
                 SaveLoadUtils.SaveToJson(Games, _jsonFilePath);
+                CheckIfGameIsOnSale();
                 IsBusy = false;
             }
         }
 
+        private void CheckIfGameIsOnSale()
+        {
+            IsGameOnSale = false;
+            foreach (var game in Games)
+            {
+                if (!string.IsNullOrEmpty(game.OriginalPrice))
+                {
+                    IsGameOnSale = true;
+                    break;
+                }
+            }
+
+            foreach (var game in Games)
+            {
+                if (!string.IsNullOrEmpty(game.PSPlusPrice))
+                {
+                    IsGameOnSale = true;
+                    break;
+                }
+            }
+        }
 
         public void AddGameFromUrl(string url)
         {
@@ -194,11 +237,11 @@ namespace WPFUI
             }
             lock (_locker)
             {
-                if (File.Exists(gameItem.CoverImagePath))
+                if (File.Exists(GetImagePath(gameItem.Title)))
                 {
                     try
                     {
-                        File.Delete(gameItem.CoverImagePath);
+                        File.Delete(GetImagePath(gameItem.Title));
                     }
                     catch (Exception e)
                     {
@@ -209,13 +252,15 @@ namespace WPFUI
 
                 Games.Remove(gameItem);
                 SaveLoadUtils.SaveToJson(Games, _jsonFilePath);
+                CheckIfGameIsOnSale();
             }
         }
 
-        private void CreateImageDirectory()
+        private void CreateDataDirectory()
         {
-            string cwd = Directory.GetCurrentDirectory();
-            _dataDirectory = Path.Combine(cwd, "Data");
+            
+            string cwd = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            _dataDirectory = Path.Combine(cwd, "PSWishlist");
             Directory.CreateDirectory(_dataDirectory);
             _jsonFilePath = Path.Combine(_dataDirectory, "Wishlist.json");
 
@@ -226,7 +271,6 @@ namespace WPFUI
             GameItem game = new GameItem()
             {
                 Title = string.Empty,
-                CoverImagePath = string.Empty,
                 FinalPrice = string.Empty,
                 OriginalPrice = string.Empty,
                 PSPlusPrice = string.Empty,
@@ -234,49 +278,92 @@ namespace WPFUI
             };
             HtmlWeb web = new HtmlWeb();
             HtmlDocument doc = web.Load(url);
-            HtmlNodeCollection imageNodes = doc.DocumentNode.SelectNodes("//img[@data-qa]");
+            
             HtmlNodeCollection titleNodes = doc.DocumentNode.SelectNodes("//h1[@data-qa]");
-
-            string imageFullURL = string.Empty;
+                       
 
             game.Title = titleNodes.FirstOrDefault().InnerHtml;
 
             ScrapePrices(game, doc);
 
-            foreach (var node in imageNodes)
-            {
-                if (node.OuterHtml.Contains("data-qa=\"gameBackgroundImage"))
-                {
-                    string outerHtml = node.OuterHtml;
-                    string[] separator = new string[] { "src=" };
-                    var arrays = outerHtml.Split(new string[] { "src=" }, StringSplitOptions.None);
-                    var imageUrlArray = arrays[1].Split(' ');
-                    string imageUrl = imageUrlArray[0].Split('>')[0];
-
-                    imageFullURL = imageUrl.Trim('\"');
-                    break;
-                }
-
-            }
-
-            using (WebClient webclient = new WebClient())
-            {
-                byte[] data = webclient.DownloadData(imageFullURL);
-                using (MemoryStream memStream = new MemoryStream(data))
-                {
-                    using (var myImage = Image.FromStream(memStream))
-                    {
-                        game.CoverImagePath = GenerateImageName(game.Title);
-                        myImage.Save(game.CoverImagePath, ImageFormat.Png);
-                        game.ImageSource = LoadImage(game.CoverImagePath);
-                    }
-                }
-            }
-
+            if (game.FinalPrice != "")
+                ImageSave(game, doc);
 
             Games.Add(game);
+            SavePriceHistory(game);
             SaveLoadUtils.SaveToJson(Games, _jsonFilePath);
+            CheckIfGameIsOnSale();
         }
+
+
+        private void ImageSave(GameItem game, HtmlDocument doc)
+        {
+            string coverImagePath = GetImagePath(game.Title);
+
+            if (!System.IO.File.Exists(coverImagePath))
+            {
+
+                HtmlNodeCollection imageNodes = doc.DocumentNode.SelectNodes("//img[@data-qa]");
+                string imageFullURL = string.Empty;
+
+                foreach (var node in imageNodes)
+                {
+                    if (node.OuterHtml.Contains("data-qa=\"gameBackgroundImage"))
+                    {
+                        string outerHtml = node.OuterHtml;
+                        string[] separator = new string[] { "src=" };
+                        var arrays = outerHtml.Split(new string[] { "src=" }, StringSplitOptions.None);
+                        var imageUrlArray = arrays[1].Split(' ');
+                        string imageUrl = imageUrlArray[0].Split('>')[0];
+
+                        imageFullURL = imageUrl.Trim('\"');
+                        break;
+                    }
+
+                }
+
+
+                using (WebClient webclient = new WebClient())
+                {
+                    byte[] data = webclient.DownloadData(imageFullURL);
+                    using (MemoryStream memStream = new MemoryStream(data))
+                    {
+                        using (var myImage = Image.FromStream(memStream))
+                        {
+                            myImage.Save(coverImagePath, ImageFormat.Png);
+                            game.ImageSource = LoadImage(coverImagePath);
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+        private void SavePriceHistory(GameItem game)
+        {
+            PriceHistroy ph = new PriceHistroy();
+            ph.CheckDateTime = System.DateTime.Now.Year + "-" + DateTime.Now.Month.ToString("00") + "-" + DateTime.Now.Day.ToString("00") + " "
+                + DateTime.Now.Hour.ToString("00") + ":" + DateTime.Now.Minute.ToString("00") + ":" + DateTime.Now.Second.ToString("00");
+
+            if (game.OriginalPrice == "")
+            {
+                ph.DiscountPrice = "";
+                ph.OriginalPrice = game.FinalPrice;
+            }
+            else
+            {
+                ph.DiscountPrice = game.FinalPrice;
+                ph.OriginalPrice = game.OriginalPrice;
+            }
+           
+
+            ph.PSPlusPrice = game.PSPlusPrice;
+            string gamehistorid = SaveLoadUtils.GetGameNameID(game.Title);
+            string jsongamehistoryFilePath = Path.Combine(_dataDirectory, gamehistorid + "_hist.json");
+            SaveLoadUtils.SaveGamePriceHistroyToJson(ph, jsongamehistoryFilePath);
+        }
+
 
         private void ScrapePrices(GameItem game, HtmlDocument htmlDocument)
         {
@@ -307,53 +394,45 @@ namespace WPFUI
 
             try
             {
-                int dpIdxPSs = htmlDocument.Text.IndexOf("[\"ps-plus\"]");
-                if (dpIdxPSs > 0)
-                {
-                    int dpIdxS = htmlDocument.Text.IndexOf("discountedPrice", dpIdxPSs) + 18;
-                    int dpIdxE = htmlDocument.Text.IndexOf("\"", dpIdxS);
-                    game.PSPlusPrice = htmlDocument.Text.Substring(dpIdxS, dpIdxE - dpIdxS);
-                }
+                int dpidxsps = htmlDocument.Text.IndexOf("[\"ps-plus\"]");
+                int dpidxs = htmlDocument.Text.IndexOf("discountedPrice", dpidxsps) + 18;
+                int dpidxe = htmlDocument.Text.IndexOf("Ft", dpidxs) +  2;
+
+                game.PSPlusPrice = htmlDocument.Text.Substring(dpidxs, dpidxe - dpidxs);
             }
-            catch {
-                game.PSPlusPrice = "ERR..";
-            };
+            catch { };
 
         }
 
-        private string GenerateImageName(string str)
+        private string GetImagePath(string strTitle)
         {
-            if (string.IsNullOrEmpty(str))
-            {
-                Random rnd = new Random();
-                return rnd.Next().ToString() + ".png";
-            }
+            string imgname = SaveLoadUtils.GetGameNameID(strTitle);
+
             StringBuilder sb = new StringBuilder();
             sb.Append(_dataDirectory);
             sb.Append("\\");
-
-            foreach (char c in str)
-            {
-                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '.' || c == '_')
-                {
-                    sb.Append(c);
-                }
-            }
+            sb.Append(imgname);
             sb.Append(".png");
             return sb.ToString();
         }
+
+
 
         private ImageSource LoadImage(string path)
         {
             var bitmapImage = new BitmapImage();
 
-            using (var stream = new FileStream(path, FileMode.Open))
+            if (System.IO.File.Exists(path))
             {
-                bitmapImage.BeginInit();
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.StreamSource = stream;
-                bitmapImage.EndInit();
-                bitmapImage.Freeze(); // optional
+
+                using (var stream = new FileStream(path, FileMode.Open))
+                {
+                    bitmapImage.BeginInit();
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.StreamSource = stream;
+                    bitmapImage.EndInit();
+                    bitmapImage.Freeze(); // optional
+                }
             }
 
             return bitmapImage;

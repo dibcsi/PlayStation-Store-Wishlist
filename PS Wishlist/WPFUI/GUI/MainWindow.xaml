@@ -5,12 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPFUI"
         mc:Ignorable="d"
-        Title="PS Store Wishlist" Height="450" Width="800">
+        Title="PS Store Wishlist" Height="600" Width="1000">
     <Window.Resources>
         <Thickness x:Key="listItemMargin" Left="0" Top="2" Right="10" Bottom="2" />
         <Thickness x:Key="headerMargin" Left="5" Top="2" Right="5" Bottom="20" />
         <local:PriceToVisibilityConverter x:Key="PriceToVisibilityConverter"/>
         <local:BooleanToHiddenVisibilityConverter x:Key="BoolToHiddenVisibilityConverter"/>
+        <local:FinalPriceConverter x:Key="FinalPriceConverter"/>
+        <local:FinalPriceFCConverter x:Key="FinalPriceFCConverter"/>
     </Window.Resources>
 
 
@@ -46,8 +48,17 @@
         </StackPanel>
 
 
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Visibility="{Binding Path=DataContext.IsGameOnSale, Converter={StaticResource BoolToHiddenVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, RelativeSource={x:Static RelativeSource.Self}}">
+            <StackPanel.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0" SpreadMethod="Reflect">
+                    <GradientStop Color="#FFD4CB12" Offset="0"/>
+                    <GradientStop Color="White" Offset="1"/>
+                </LinearGradientBrush>
+            </StackPanel.Background>
+            <TextBlock x:Name="GameOnSale" Text="✯ A game is on sale" Margin="{StaticResource headerMargin}" HorizontalAlignment="Center" />
+        </StackPanel>
 
-        <ListBox x:Name="ListboxGames" Grid.Row="2" Grid.ColumnSpan="3" ItemsSource="{Binding Games, UpdateSourceTrigger=PropertyChanged}" SelectionChanged="ListboxGames_SelectionChanged" ScrollViewer.CanContentScroll="False">
+        <ListBox x:Name="ListboxGames" Grid.Row="2" Grid.ColumnSpan="3" ItemsSource="{Binding Games, UpdateSourceTrigger=PropertyChanged}" MouseLeftButtonUp="ListboxGames_MouseLeftButtonUp" MouseRightButtonUp="ListboxGames_MouseRightButtonUp" SelectionChanged="ListboxGames_SelectionChanged" ScrollViewer.CanContentScroll="False">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -78,7 +89,10 @@
                         <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" MaxHeight="40" Source="{Binding Path=ImageSource}" Margin="{StaticResource listItemMargin}"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="6" Text="{Binding Path=Title}" Margin="{StaticResource listItemMargin}"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="Price:" Margin="{StaticResource listItemMargin}"/>
-                        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Path=FinalPrice}" Margin="{StaticResource listItemMargin}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Path=FinalPrice, Converter={StaticResource FinalPriceConverter}}" 
+                             Foreground="{Binding Path=FinalPrice, Converter={StaticResource FinalPriceFCConverter}}"     Margin="{StaticResource listItemMargin}"/>
+                        
                         <TextBlock Grid.Row="1" Grid.Column="3" Text="Original price:" Margin="{StaticResource listItemMargin}" Visibility="{Binding Path=OriginalPrice, Converter={StaticResource PriceToVisibilityConverter}}" />
                         <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Path=OriginalPrice}" Margin="{StaticResource listItemMargin}" />
                         <TextBlock Grid.Row="1" Grid.Column="5" Text="PSPlus Price:" Margin="{StaticResource listItemMargin}" Visibility="{Binding Path=PSPlusPrice, Converter={StaticResource PriceToVisibilityConverter}}" />

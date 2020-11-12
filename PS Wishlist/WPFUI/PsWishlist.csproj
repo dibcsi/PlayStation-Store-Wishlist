@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -110,11 +111,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BooleanToHiddenVisibilityConverter.cs" />
+    <Compile Include="Converters\FinalPriceConverter.cs" />
+    <Compile Include="Converters\FinalPriceFCConverter.cs" />
+    <Compile Include="Converters\PriceHistoryBGColorConverter.cs" />
     <Compile Include="GUI\Popup.xaml.cs">
       <DependentUpon>Popup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\PriceToVisibilityConverter.cs" />
+    <Compile Include="GUI\PriceHistory.xaml.cs">
+      <DependentUpon>PriceHistory.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Model\PriceHistroy.cs" />
     <Compile Include="Utils\SaveLoadUtils.cs" />
+    <Compile Include="ViewModel\PriceHistoryViewModel.cs" />
     <Compile Include="ViewModel\WishlistViewModel.cs" />
     <Page Include="GUI\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -132,6 +141,10 @@
     <Page Include="GUI\Popup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GUI\PriceHistory.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
