@@ -91,8 +91,12 @@ namespace WPFUI
         {
             var item = (Button)e.Source;
             var game = item.DataContext;
-            _viewModel?.RemoveGameFromList(game);
-            ListboxGames.Items.Refresh();
+
+            if (MessageBox.Show("Do you want to remove this game from list?\n (" + ((GameItem)game).Title + ")", "Remove from list?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                _viewModel?.RemoveGameFromList(game);
+                ListboxGames.Items.Refresh();
+            }
         }
 
         private void ListboxGames_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
